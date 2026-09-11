@@ -9,7 +9,9 @@ import {
   Loader2,
   CheckCircle2,
   Share2,
-  ArrowUpDown
+  ArrowUpDown,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { AssignmentData, StyleConfig } from '../types';
 import { CoverTemplateRenderer } from './templates/CoverTemplateRenderer';
@@ -19,15 +21,34 @@ interface CoverPreviewProps {
   data: AssignmentData;
   styleConfig: StyleConfig;
   onOpenLayoutTab?: () => void;
+  isExporting?: boolean;
+  exportStage?: string;
+  exportError?: string | null;
+  onExportPDF?: () => void;
+  onDismissError?: () => void;
 }
 
-export const CoverPreview: React.FC<CoverPreviewProps> = ({ data, styleConfig, onOpenLayoutTab }) => {
+export const CoverPreview: React.FC<CoverPreviewProps> = ({
+  data,
+  styleConfig,
+  onOpenLayoutTab,
+  isExporting: externalIsExporting,
+  exportStage: externalExportStage,
+  exportError: externalExportError,
+  onExportPDF,
+  onDismissError,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(55);
   const [hasManuallyZoomed, setHasManuallyZoomed] = useState<boolean>(false);
-  const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [exportStage, setExportStage] = useState<string>('');
+  const [internalIsExporting, setInternalIsExporting] = useState<boolean>(false);
+  const [internalExportStage, setInternalExportStage] = useState<string>('');
+  const [internalExportError, setInternalExportError] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  const isExporting = externalIsExporting ?? internalIsExporting;
+  const exportStage = externalExportStage ?? internalExportStage;
+  const exportError = externalExportError ?? internalExportError;
 
   // Aspect ratio calculation
   const isA4 = styleConfig.paperSize === 'a4';
@@ -92,6 +113,11 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({ data, styleConfig, o
   }, [calculateFitZoom, hasManuallyZoomed]);
 
   const handleDownloadPDF = async () => {
+    if (onExportPDF) {
+      onExportPDF();
+      return;
+    }
+
     if (isExporting) return;
 
     const baseName = `${data.courseCode || 'Assignment'}_${data.studentName || 'Cover'}`;
@@ -102,22 +128,31 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({ data, styleConfig, o
       filename,
       paperSize: styleConfig.paperSize,
       onStart: () => {
-        setIsExporting(true);
-        setExportStage('Initializing render...');
+        setInternalIsExporting(true);
+        setInternalExportError(null);
+        setInternalExportStage('Initializing high-resolution render...');
       },
       onProgress: (stage) => {
-        setExportStage(stage);
+        setInternalExportStage(stage);
       },
       onComplete: () => {
-        setIsExporting(false);
-        setExportStage('');
+        setInternalIsExporting(false);
+        setInternalExportStage('');
       },
       onError: (err) => {
-        setIsExporting(false);
-        setExportStage('');
-        alert(`Export failed: ${err.message}. You can also use the 'Print / Vector' button to save as PDF!`);
+        setInternalIsExporting(false);
+        setInternalExportStage('');
+        setInternalExportError(err.message || 'Export error encountered');
       },
     });
+  };
+
+  const handleDismissError = () => {
+    if (onDismissError) {
+      onDismissError();
+    } else {
+      setInternalExportError(null);
+    }
   };
 
   const handleShare = () => {
@@ -247,6 +282,35 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({ data, styleConfig, o
           <div>
             <p className="font-bold">Generating Professional PDF...</p>
             <p className="text-slate-300 text-[11px]">{exportStage || 'Please wait a moment'}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error Notification Toast */}
+      {exportError && (
+        <div className="absolute top-16 right-6 z-30 bg-rose-950/90 text-white text-xs p-4 rounded-xl shadow-2xl backdrop-blur-md flex items-start gap-3 border border-rose-700/80 max-w-sm">
+          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-1.5">
+            <p className="font-bold text-rose-100">PDF Render Note</p>
+            <p className="text-rose-200/90 text-[11px] leading-relaxed">{exportError}</p>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => {
+                  handleDismissError();
+                  triggerPrintCover();
+                }}
+                className="px-2.5 py-1 bg-white text-rose-900 rounded-md font-bold text-[11px] hover:bg-rose-100 transition-colors shadow-xs cursor-pointer"
+              >
+                Print to PDF (Vector)
+              </button>
+              <button
+                onClick={handleDismissError}
+                className="p-1 text-rose-300 hover:text-white rounded cursor-pointer"
+                title="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}

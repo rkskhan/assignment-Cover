@@ -80,19 +80,43 @@ export default function App() {
     }
   };
 
-  const handleQuickDownload = () => {
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [exportStage, setExportStage] = useState<string>('');
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const handleExportPDF = async () => {
+    if (isExporting) return;
     const baseName = `${data.courseCode || 'Assignment'}_${data.studentName || 'Cover'}`;
-    exportCoverToPDF({
+    const filename = `${baseName}_Cover_Page`;
+
+    await exportCoverToPDF({
       elementId: 'assignment-cover-target',
-      filename: `${baseName}_Cover_Page`,
+      filename,
       paperSize: styleConfig.paperSize,
+      onStart: () => {
+        setIsExporting(true);
+        setExportError(null);
+        setExportStage('Rendering high-resolution document...');
+      },
+      onProgress: (stage) => {
+        setExportStage(stage);
+      },
+      onComplete: () => {
+        setIsExporting(false);
+        setExportStage('');
+      },
+      onError: (err) => {
+        setIsExporting(false);
+        setExportStage('');
+        setExportError(err.message || 'Export failed. You can use Print / Vector as a 100% reliable alternative.');
+      },
     });
   };
 
   return (
     <div className="h-screen w-screen max-h-screen max-w-screen overflow-hidden flex flex-col bg-slate-100 text-slate-900 font-sans">
       {/* Top Application Bar */}
-      <Header onQuickDownload={handleQuickDownload} />
+      <Header onQuickDownload={handleExportPDF} isExporting={isExporting} />
 
       {/* Main 2-Part Workspace Container: Both Part 1 & Part 2 Visible Side by Side */}
       <main className="flex-1 min-h-0 flex flex-row overflow-hidden relative">
@@ -121,6 +145,11 @@ export default function App() {
             data={data}
             styleConfig={styleConfig}
             onOpenLayoutTab={() => setEditorTab('rearrange')}
+            isExporting={isExporting}
+            exportStage={exportStage}
+            exportError={exportError}
+            onExportPDF={handleExportPDF}
+            onDismissError={() => setExportError(null)}
           />
         </section>
       </main>

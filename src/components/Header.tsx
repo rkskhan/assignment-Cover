@@ -1,12 +1,13 @@
 import React from 'react';
-import { Download, Check, Columns } from 'lucide-react';
+import { Download, Check, Columns, Loader2 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface HeaderProps {
   onQuickDownload: () => void;
+  isExporting?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onQuickDownload }) => {
+export const Header: React.FC<HeaderProps> = ({ onQuickDownload, isExporting = false }) => {
   return (
     <header className="no-print bg-white border-b border-slate-200 px-4 md:px-6 py-2 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
       {/* Redesigned Brand Logo & Title */}
@@ -30,11 +31,21 @@ export const Header: React.FC<HeaderProps> = ({ onQuickDownload }) => {
 
         <button
           onClick={onQuickDownload}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-all shadow-xs cursor-pointer"
+          disabled={isExporting}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-all shadow-xs cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           title="Export formatted PDF"
         >
-          <Download className="w-3.5 h-3.5" />
-          <span>Export PDF</span>
+          {isExporting ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Exporting...</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-3.5 h-3.5" />
+              <span>Export PDF</span>
+            </>
+          )}
         </button>
       </div>
     </header>
