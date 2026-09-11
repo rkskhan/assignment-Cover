@@ -1,0 +1,492 @@
+import { AssignmentData, StyleConfig, FontOption, TemplateOption, ColorPreset, StylePreset, BorderStyle } from './types';
+
+export const INITIAL_ASSIGNMENT_DATA: AssignmentData = {
+  universityName: 'Jagannath University',
+  facultyName: '',
+  departmentName: 'Department of Management Studies',
+  campus: 'Jagannath University, Dhaka-1100.',
+  logoUrl: '/JnUlogo.png',
+  logoWidth: 140,
+  logoPosition: 'center',
+
+  title: 'Transformation of GATT into WTO',
+  subtitle: '',
+  courseCode: 'MGT-3201',
+  courseName: 'International Business',
+  assignmentType: 'Assignment',
+
+  studentName: 'Rezaul Karim Sagor',
+  studentId: 'B220202094',
+  additionalStudents: [],
+  program: 'Department of Management Studies',
+  batch: '18ᵗʰ Section: B',
+
+  instructorName: 'Farnaz Parveen',
+  instructorTitle: 'Assistant professor',
+  instructorDept: 'Department of Management Studies',
+  submissionDate: '07/04/2026',
+  academicYear: '2022-2023',
+};
+
+export const DEFAULT_SECTION_ORDER: import('./types').CoverSectionId[] = [
+  'header-topic',
+  'submitted-to',
+  'submitted-by',
+  'submission-date',
+];
+
+export const SECTION_METADATA: Record<
+  import('./types').CoverSectionId,
+  {
+    name: string;
+    shortDesc: string;
+    description: string;
+    iconName: string;
+  }
+> = {
+  'header-topic': {
+    name: 'Section 1: Logo to Assignment Topic',
+    shortDesc: 'University Crest, Department, Course Title & Code, Assignment on Topic',
+    description: 'Logo, Jagannath University, Department, Course Title & Code, Assignment on Topic',
+    iconName: 'School',
+  },
+  'submitted-to': {
+    name: 'Section 2: Submitted To (Left Side)',
+    shortDesc: 'Instructor, Title, Dept & Jagannath University, Dhaka-1100',
+    description: 'Submitted to: Instructor Name, Title, Dept, Jagannath University, Dhaka-1100 (Left side)',
+    iconName: 'GraduationCap',
+  },
+  'submitted-by': {
+    name: 'Section 3: Submitted By (Right Side, Left-Aligned)',
+    shortDesc: 'Divided in middle: Student credentials positioned on right side in left alignment',
+    description: 'Submitted by: Student Name, ID, Batch, Dept, Campus & Session (Right side, left-aligned)',
+    iconName: 'User',
+  },
+  'submission-date': {
+    name: 'Section 4: Date of Submission',
+    shortDesc: 'Date of Submission (e.g. 07/04/2026)',
+    description: 'Date of Submission (e.g. 07/04/2026)',
+    iconName: 'Calendar',
+  },
+  'institution': {
+    name: 'University & Crest Header',
+    shortDesc: 'Logo, University Name, Faculty, Department',
+    description: 'University crest, name and department',
+    iconName: 'School',
+  },
+  'course': {
+    name: 'Course Information',
+    shortDesc: 'Course Title & Course Code',
+    description: 'Course name and course code',
+    iconName: 'BookMarked',
+  },
+  'assignment': {
+    name: 'Assignment Topic & Title',
+    shortDesc: 'Assignment type, "On", Title & Subtitle',
+    description: 'Assignment title and topic',
+    iconName: 'FileText',
+  },
+  'submission': {
+    name: 'Submission Parties (Combined)',
+    shortDesc: '"Submitted to" Instructor & "Submitted by" Student',
+    description: 'Both instructor and student details',
+    iconName: 'Users',
+  },
+  'footer': {
+    name: 'Date & Session Footer',
+    shortDesc: 'Submission Date & Academic Year',
+    description: 'Submission date and session',
+    iconName: 'Calendar',
+  },
+};
+
+export const SECTION_ORDER_PRESETS: {
+  id: string;
+  name: string;
+  description: string;
+  order: import('./types').CoverSectionId[];
+}[] = [
+  {
+    id: 'preset-order-academic-plan',
+    name: 'Academic Plan (4 Sections - Default)',
+    description: '1. Logo to Topic → 2. Submitted To → 3. Submitted By → 4. Submission Date',
+    order: ['header-topic', 'submitted-to', 'submitted-by', 'submission-date'],
+  },
+  {
+    id: 'preset-order-student-first',
+    name: 'Student First (4 Sections)',
+    description: '1. Logo to Topic → 2. Submitted By → 3. Submitted To → 4. Submission Date',
+    order: ['header-topic', 'submitted-by', 'submitted-to', 'submission-date'],
+  },
+  {
+    id: 'preset-order-side-by-side',
+    name: 'Side-by-Side Submission Columns',
+    description: '1. Logo to Topic → 2. Submitted To (L) & By (R) → 3. Submission Date',
+    order: ['header-topic', 'submission', 'submission-date'],
+  },
+  {
+    id: 'preset-order-academic-granular',
+    name: 'Classic 5-Section Granular',
+    description: 'Institution Crest → Course → Assignment Topic → Submission → Date',
+    order: ['institution', 'course', 'assignment', 'submission', 'footer'],
+  },
+];
+
+export const INITIAL_STYLE_CONFIG: StyleConfig = {
+  template: 'classic',
+  fontFamily: 'times', // Times New Roman default
+  accentColor: '#c25e00', // Warm Ochre / Amber from classic university standard
+  borderStyle: 'none',
+  borderWidth: 2,
+  borderInset: 20,
+  graphicOverlay: 'none',
+  paperSize: 'a4',
+  spacing: 'balanced',
+  showDivider: false,
+  showWatermark: false,
+  watermarkText: 'DRAFT',
+
+  // Section Ordering & Layout (Defaulting to user's exact 4-section plan)
+  sectionOrder: ['header-topic', 'submitted-to', 'submitted-by', 'submission-date'],
+  hiddenSections: [],
+  submissionLayout: 'stacked-instructor-first',
+
+  // MS Word No Spacing default (1.15 tight line spacing, 0 margin)
+  lineSpacingMode: 'word-no-space',
+  lineSpacingValue: 1.15,
+  sectionSpacingMultiplier: 1.0,
+
+  fontSizeMode: 'standard',
+  fontScaleMultiplier: 1.0,
+};
+
+// Curated Graphic Style Presets Analyzed from Reference Cover Art & Publications
+export const STYLE_PRESETS: StylePreset[] = [
+  {
+    id: 'preset-classic-academic',
+    name: 'Traditional Academic',
+    subtitle: 'Classic university layout with Times New Roman & warm collegiate amber',
+    template: 'classic',
+    fontFamily: 'times',
+    accentColor: '#c25e00',
+    borderStyle: 'none',
+    graphicOverlay: 'none',
+    badge: 'Default',
+    previewColor: '#c25e00',
+    previewSecondary: '#1e3a8a',
+  },
+  {
+    id: 'preset-growth-index-databook',
+    name: 'Growth Corporates (Data Book)',
+    subtitle: 'Ascending blue multi-stripe 3D ribbon arrows & solid research data book bar',
+    template: 'modern',
+    fontFamily: 'outfit',
+    accentColor: '#0052cc',
+    borderStyle: 'none',
+    graphicOverlay: 'growth-index-databook',
+    badge: 'Visa / Fintech',
+    previewColor: '#0052cc',
+    previewSecondary: '#38bdf8',
+  },
+  {
+    id: 'preset-growth-index-edition',
+    name: 'Global Market Index (Edition)',
+    subtitle: 'Ascending growth trajectory ribbon with regional globe medallion & edition pill',
+    template: 'executive',
+    fontFamily: 'inter',
+    accentColor: '#1d4ed8',
+    borderStyle: 'none',
+    graphicOverlay: 'growth-index-edition',
+    badge: 'Corporate Report',
+    previewColor: '#1d4ed8',
+    previewSecondary: '#60a5fa',
+  },
+  {
+    id: 'preset-orbital-particle-globe',
+    name: 'Orbital Particle Globe',
+    subtitle: 'Radiating dot-matrix data globe with dual orbital arcs & dark title badge (EUTAX Style)',
+    template: 'modern',
+    fontFamily: 'inter',
+    accentColor: '#004785',
+    borderStyle: 'none',
+    graphicOverlay: 'orbital-particle-globe',
+    badge: 'Policy Think Tank',
+    previewColor: '#004785',
+    previewSecondary: '#ea580c',
+  },
+  {
+    id: 'preset-sculptural-arch-ribbon',
+    name: 'Architectural Annual Report',
+    subtitle: 'Minimalist 3D sculptural grey curve bracket & vibrant cerulean vertical ribbon',
+    template: 'modern',
+    fontFamily: 'montserrat',
+    accentColor: '#0284c7',
+    borderStyle: 'none',
+    graphicOverlay: 'sculptural-arch-ribbon',
+    badge: 'Swiss Modern',
+    previewColor: '#0284c7',
+    previewSecondary: '#cbd5e1',
+  },
+  {
+    id: 'preset-cyan-wave',
+    name: 'Cyan Curved Wave',
+    subtitle: 'Concentric gradient arcs & corporate minimalist balance (Annual Report)',
+    template: 'modern',
+    fontFamily: 'outfit',
+    accentColor: '#0284c7',
+    borderStyle: 'none',
+    graphicOverlay: 'cyan-wave',
+    badge: 'Annual Report',
+    previewColor: '#0284c7',
+    previewSecondary: '#14b8a6',
+  },
+  {
+    id: 'preset-ocean-wave',
+    name: 'Dynamic Ocean Wave',
+    subtitle: 'Sweeping cerulean arcs & Oxford navy flow banner (Corporate Cover)',
+    template: 'modern',
+    fontFamily: 'montserrat',
+    accentColor: '#1e3a8a',
+    borderStyle: 'none',
+    graphicOverlay: 'ocean-wave',
+    badge: 'Executive',
+    previewColor: '#1e3a8a',
+    previewSecondary: '#38bdf8',
+  },
+  {
+    id: 'preset-diamond-ribbon',
+    name: 'Isometric Diamond Loop',
+    subtitle: 'Interlocking 3D rounded diamond ribbons in azure & slate',
+    template: 'tech',
+    fontFamily: 'inter',
+    accentColor: '#0284c7',
+    borderStyle: 'none',
+    graphicOverlay: 'diamond-ribbon',
+    badge: 'Tech & Finance',
+    previewColor: '#0284c7',
+    previewSecondary: '#0f172a',
+  },
+  {
+    id: 'preset-architect-track',
+    name: 'Architectural Frame Tracks',
+    subtitle: 'Deep Prussian blue & silver-grey interlocking rounded loops',
+    template: 'modern',
+    fontFamily: 'montserrat',
+    accentColor: '#034b82',
+    borderStyle: 'none',
+    graphicOverlay: 'architect-track',
+    badge: 'Corporate Track',
+    previewColor: '#034b82',
+    previewSecondary: '#94a3b8',
+  },
+  {
+    id: 'preset-mint-leaf-wave',
+    name: 'Fluid Mint Wave Margin',
+    subtitle: 'Multilayered organic wave margin in soft seafoam & emerald teal',
+    template: 'modern',
+    fontFamily: 'inter',
+    accentColor: '#0d9488',
+    borderStyle: 'none',
+    graphicOverlay: 'mint-leaf-wave',
+    badge: 'Bio & Eco',
+    previewColor: '#10b981',
+    previewSecondary: '#0f766e',
+  },
+  {
+    id: 'preset-diagonal-cut',
+    name: 'Diagonal Angle Cut',
+    subtitle: 'High-contrast spring green & dark forest olive angular geometry',
+    template: 'executive',
+    fontFamily: 'montserrat',
+    accentColor: '#65a30d',
+    borderStyle: 'none',
+    graphicOverlay: 'diagonal-cut',
+    badge: 'Business Proposal',
+    previewColor: '#65a30d',
+    previewSecondary: '#166534',
+  },
+  {
+    id: 'preset-teal-lime-s',
+    name: 'Teal & Lime S-Curve',
+    subtitle: 'Sweeping dual-tone ribbon banner cutting diagonally across page',
+    template: 'modern',
+    fontFamily: 'outfit',
+    accentColor: '#0f766e',
+    borderStyle: 'none',
+    graphicOverlay: 'teal-lime-s',
+    badge: 'Project Proposal',
+    previewColor: '#0f766e',
+    previewSecondary: '#84cc16',
+  },
+  {
+    id: 'preset-classical-pillars',
+    name: 'Classical Ionic Columns',
+    subtitle: 'Architectural capital scrolls & fluted pillars in Mediterranean blues',
+    template: 'classic',
+    fontFamily: 'times',
+    accentColor: '#1d4ed8',
+    borderStyle: 'none',
+    graphicOverlay: 'classical-pillars',
+    badge: 'Humanities & Law',
+    previewColor: '#2563eb',
+    previewSecondary: '#60a5fa',
+  },
+  {
+    id: 'preset-prism-cascade',
+    name: 'Prism Shard Cascade',
+    subtitle: 'Swirling low-poly rainbow crystal shards in ascending spiral',
+    template: 'modern',
+    fontFamily: 'outfit',
+    accentColor: '#0284c7',
+    borderStyle: 'none',
+    graphicOverlay: 'prism-cascade',
+    badge: 'Museum & Ethics',
+    previewColor: '#f59e0b',
+    previewSecondary: '#10b981',
+  },
+  {
+    id: 'preset-mosaic-curves',
+    name: 'Cellular Mosaic Flow',
+    subtitle: 'Organic stained-glass droplet curves & vibrant emerald-sky palette',
+    template: 'modern',
+    fontFamily: 'outfit',
+    accentColor: '#0284c7',
+    borderStyle: 'none',
+    graphicOverlay: 'mosaic-curves',
+    badge: 'Creative Arts',
+    previewColor: '#0ea5e9',
+    previewSecondary: '#10b981',
+  },
+];
+
+export const BORDER_STYLE_OPTIONS: { id: BorderStyle; label: string; description: string }[] = [
+  { id: 'none', label: 'No Border', description: 'Clean seamless background without framing' },
+  { id: 'single', label: 'Single Line', description: 'Clean uniform 1-line border' },
+  { id: 'double', label: 'Double Classic', description: 'Traditional Oxford & Cambridge double hairline rule' },
+  { id: 'thick-thin', label: 'Thick & Thin', description: 'Heavy outer frame with fine inner hairline' },
+  { id: 'formal-corner', label: 'Corner Brackets', description: 'Academic formal L-shaped corner brackets' },
+  { id: 'accent-edge', label: 'Left Accent Stripe', description: 'Modern editorial left vertical color block' },
+  { id: 'geometric-frame', label: 'Geometric Inset', description: 'Offset border with corner notch accents' },
+  { id: 'dashed-architect', label: 'Dashed Drafting', description: 'Fine architectural technical dashed frame' },
+  { id: 'rounded-box', label: 'Rounded Soft Box', description: 'Smooth rounded modern enclosure' },
+  { id: 'ornate-corners', label: 'Ornate Classical', description: 'Heritage collegiate decorative corners' },
+];
+
+export const FONT_OPTIONS: FontOption[] = [
+  {
+    id: 'times',
+    name: 'Times New Roman',
+    category: 'Serif',
+    fontFamilyClass: "'Times New Roman', Times, 'Tinos', 'Liberation Serif', serif",
+    description: 'The standard academic serif font required by universities worldwide for assignments and theses.',
+  },
+  {
+    id: 'cormorant',
+    name: 'Cormorant Garamond',
+    category: 'Serif',
+    fontFamilyClass: "'Cormorant Garamond', Georgia, serif",
+    description: 'Classic Ivy League elegance with refined serif proportions.',
+  },
+  {
+    id: 'cinzel',
+    name: 'Cinzel Academic',
+    category: 'Display',
+    fontFamilyClass: "'Cinzel', Georgia, serif",
+    description: 'Monumental roman inscriptional capitals for formal thesis works.',
+  },
+  {
+    id: 'baskerville',
+    name: 'Libre Baskerville',
+    category: 'Serif',
+    fontFamilyClass: "'Libre Baskerville', Georgia, serif",
+    description: 'Authoritative traditional British academic press typography.',
+  },
+  {
+    id: 'eb-garamond',
+    name: 'EB Garamond',
+    category: 'Serif',
+    fontFamilyClass: "'EB Garamond', Garamond, Georgia, serif",
+    description: 'Timeless humanist renaissance serif with literary dignity.',
+  },
+  {
+    id: 'inter',
+    name: 'Inter Modern',
+    category: 'Sans',
+    fontFamilyClass: "'Inter', system-ui, sans-serif",
+    description: 'Clean, neutral Swiss-inspired modern university styling.',
+  },
+  {
+    id: 'outfit',
+    name: 'Outfit Contemporary',
+    category: 'Sans',
+    fontFamilyClass: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+    description: 'Modern geometric sans with crisp legibility and high contrast.',
+  },
+  {
+    id: 'montserrat',
+    name: 'Montserrat Editorial',
+    category: 'Sans',
+    fontFamilyClass: "'Montserrat', sans-serif",
+    description: 'Bold architectural sans ideal for business & management reports.',
+  },
+  {
+    id: 'mono',
+    name: 'JetBrains Technical',
+    category: 'Monospace',
+    fontFamilyClass: "'JetBrains Mono', monospace",
+    description: 'Crisp technical aesthetic tailored for engineering & lab covers.',
+  },
+];
+
+export const TEMPLATE_OPTIONS: TemplateOption[] = [
+  {
+    id: 'classic',
+    name: 'Classic Academic',
+    description: 'Formal centered layout with university crest, title hierarchy, and balanced professor & student columns.',
+    badge: 'Standard',
+  },
+  {
+    id: 'cambridge',
+    name: 'Cambridge Framed',
+    description: 'Noble academic box frame with ornate corners, prominent institutional header, and official stamp block.',
+    badge: 'Formal',
+  },
+  {
+    id: 'modern',
+    name: 'Modern Minimalist',
+    description: 'Clean asymmetric layout with high-impact color accents, sleek lines, and contemporary structured grid.',
+    badge: 'Contemporary',
+  },
+  {
+    id: 'editorial',
+    name: 'Header Banner',
+    description: 'Distinctive top institutional branding bar with logo, prominent card-style metadata, and sleek footer.',
+    badge: 'Editorial',
+  },
+  {
+    id: 'tech',
+    name: 'Technical Lab Report',
+    description: 'Engineered for STEM labs, computer science papers, and technical capstone documentation.',
+    badge: 'Engineering',
+  },
+  {
+    id: 'executive',
+    name: 'Executive Case Study',
+    description: 'Business school and MBA presentation standard with clean horizontal dividers and corporate polish.',
+    badge: 'Business',
+  },
+];
+
+export const COLOR_PRESETS: ColorPreset[] = [
+  { name: 'Ochre Amber (Default)', hex: '#c25e00', description: 'Warm university academic standard' },
+  { name: 'Oxford Navy', hex: '#1e3a8a', description: 'Deep intellectual authority' },
+  { name: 'Harvard Crimson', hex: '#881337', description: 'Historic collegiate prestige' },
+  { name: 'Cambridge Forest', hex: '#064e3b', description: 'Traditional academic green' },
+  { name: 'Royal Indigo', hex: '#4338ca', description: 'Refined modern scholarly tone' },
+  { name: 'Charcoal Slate', hex: '#1f2937', description: 'Neutral high-contrast formality' },
+  { name: 'Midnight Onyx', hex: '#09090b', description: 'Pure monochromatic discipline' },
+  { name: 'Imperial Gold & Wine', hex: '#78350f', description: 'Warm amber historic finish' },
+  { name: 'Teal Polytech', hex: '#0f766e', description: 'Modern scientific & STEM finish' },
+  { name: 'Spring Lime & Green', hex: '#65a30d', description: 'Fresh dynamic corporate proposal' },
+  { name: 'Azure Cerulean', hex: '#0284c7', description: 'Vibrant modern publication' },
+];

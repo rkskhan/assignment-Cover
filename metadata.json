@@ -1,0 +1,6 @@
+{
+  "name": "Assignment Cover Maker",
+  "description": "Create, customize, and export professional university assignment cover pages with logo upload, font styles, and instant PDF download.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
