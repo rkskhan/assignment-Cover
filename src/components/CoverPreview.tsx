@@ -11,20 +11,24 @@ import {
   Share2,
   ArrowUpDown,
   AlertCircle,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { AssignmentData, StyleConfig } from '../types';
 import { CoverTemplateRenderer } from './templates/CoverTemplateRenderer';
 import { exportCoverToPDF, triggerPrintCover } from '../utils/pdfExport';
+import { exportCoverToDocx } from '../utils/docxExport';
 
 interface CoverPreviewProps {
   data: AssignmentData;
   styleConfig: StyleConfig;
   onOpenLayoutTab?: () => void;
   isExporting?: boolean;
+  exportType?: 'pdf' | 'docx' | null;
   exportStage?: string;
   exportError?: string | null;
   onExportPDF?: () => void;
+  onExportDocx?: () => void;
   onDismissError?: () => void;
 }
 
@@ -33,20 +37,24 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
   styleConfig,
   onOpenLayoutTab,
   isExporting: externalIsExporting,
+  exportType: externalExportType,
   exportStage: externalExportStage,
   exportError: externalExportError,
   onExportPDF,
+  onExportDocx,
   onDismissError,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(55);
   const [hasManuallyZoomed, setHasManuallyZoomed] = useState<boolean>(false);
   const [internalIsExporting, setInternalIsExporting] = useState<boolean>(false);
+  const [internalExportType, setInternalExportType] = useState<'pdf' | 'docx' | null>(null);
   const [internalExportStage, setInternalExportStage] = useState<string>('');
   const [internalExportError, setInternalExportError] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
   const isExporting = externalIsExporting ?? internalIsExporting;
+  const exportType = externalExportType ?? internalExportType;
   const exportStage = externalExportStage ?? internalExportStage;
   const exportError = externalExportError ?? internalExportError;
 
@@ -141,8 +149,47 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
       },
       onError: (err) => {
         setInternalIsExporting(false);
+        setInternalExportType(null);
         setInternalExportStage('');
         setInternalExportError(err.message || 'Export error encountered');
+      },
+    });
+  };
+
+  const handleDownloadDocx = async () => {
+    if (onExportDocx) {
+      onExportDocx();
+      return;
+    }
+
+    if (isExporting) return;
+
+    const baseName = `${data.courseCode || 'Assignment'}_${data.studentName || 'Cover'}`;
+    const filename = `${baseName}_Cover_Page`;
+
+    await exportCoverToDocx({
+      data,
+      styleConfig,
+      filename,
+      onStart: () => {
+        setInternalIsExporting(true);
+        setInternalExportType('docx');
+        setInternalExportError(null);
+        setInternalExportStage('Preparing Word document structure...');
+      },
+      onProgress: (stage) => {
+        setInternalExportStage(stage);
+      },
+      onComplete: () => {
+        setInternalIsExporting(false);
+        setInternalExportType(null);
+        setInternalExportStage('');
+      },
+      onError: (err) => {
+        setInternalIsExporting(false);
+        setInternalExportType(null);
+        setInternalExportStage('');
+        setInternalExportError(err.message || 'Word (.docx) export failed');
       },
     });
   };
@@ -244,21 +291,44 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
             <span className="hidden sm:inline">Print / Vector</span>
           </button>
 
+          {/* Word (.docx) Export Button */}
+          <button
+            id="btn-download-docx"
+            onClick={handleDownloadDocx}
+            disabled={isExporting}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 border border-blue-200/90 rounded-lg transition-all shadow-2xs hover:shadow-xs cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            title="Export fully editable Microsoft Word document (.docx)"
+          >
+            {isExporting && exportType === 'docx' ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                <span>Word...</span>
+              </>
+            ) : (
+              <>
+                <FileText className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span className="hidden sm:inline">Word (.docx)</span>
+                <span className="sm:hidden">Word</span>
+              </>
+            )}
+          </button>
+
           {/* Instant PDF Export Button */}
           <button
             id="btn-download-pdf"
             onClick={handleDownloadPDF}
             disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-all shadow-xs hover:shadow cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            title="Export print-ready PDF"
           >
-            {isExporting ? (
+            {isExporting && exportType === 'pdf' ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                 <span>Exporting PDF...</span>
               </>
             ) : (
               <>
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
                 <span>Export PDF</span>
               </>
             )}
@@ -278,9 +348,11 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
       {/* Exporting Progress Overlay Notification */}
       {isExporting && (
         <div className="absolute top-16 right-6 z-30 bg-slate-900/90 text-white text-xs px-4 py-3 rounded-xl shadow-xl backdrop-blur-sm flex items-center gap-3 animate-pulse border border-slate-700">
-          <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+          <Loader2 className={`w-4 h-4 animate-spin ${exportType === 'docx' ? 'text-blue-400' : 'text-indigo-400'}`} />
           <div>
-            <p className="font-bold">Generating Professional PDF...</p>
+            <p className="font-bold">
+              {exportType === 'docx' ? 'Generating Editable Word Document (.docx)...' : 'Generating Professional PDF...'}
+            </p>
             <p className="text-slate-300 text-[11px]">{exportStage || 'Please wait a moment'}</p>
           </div>
         </div>
@@ -356,8 +428,8 @@ export const CoverPreview: React.FC<CoverPreviewProps> = ({
         <span>
           Editing in <strong className="text-slate-700">Part 1</strong> updates this preview in real-time.
         </span>
-        <span className="text-slate-400">
-          Export creates print-ready 300 DPI PDF with embedded typography and crest.
+        <span className="text-slate-500">
+          Export as <strong className="text-indigo-600 font-semibold">PDF</strong> (print-ready) or <strong className="text-blue-600 font-semibold">Word (.docx)</strong> (fully editable in Microsoft Word & Google Docs).
         </span>
       </div>
     </div>

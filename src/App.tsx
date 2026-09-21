@@ -10,6 +10,7 @@ import { Header } from './components/Header';
 import { EditorPanel, EditorTabType } from './components/EditorPanel';
 import { CoverPreview } from './components/CoverPreview';
 import { exportCoverToPDF } from './utils/pdfExport';
+import { exportCoverToDocx } from './utils/docxExport';
 
 export default function App() {
   const [editorTab, setEditorTab] = useState<EditorTabType>('details');
@@ -81,6 +82,7 @@ export default function App() {
   };
 
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [exportType, setExportType] = useState<'pdf' | 'docx' | null>(null);
   const [exportStage, setExportStage] = useState<string>('');
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -95,6 +97,7 @@ export default function App() {
       paperSize: styleConfig.paperSize,
       onStart: () => {
         setIsExporting(true);
+        setExportType('pdf');
         setExportError(null);
         setExportStage('Rendering high-resolution document...');
       },
@@ -103,12 +106,46 @@ export default function App() {
       },
       onComplete: () => {
         setIsExporting(false);
+        setExportType(null);
         setExportStage('');
       },
       onError: (err) => {
         setIsExporting(false);
+        setExportType(null);
         setExportStage('');
         setExportError(err.message || 'Export failed. You can use Print / Vector as a 100% reliable alternative.');
+      },
+    });
+  };
+
+  const handleExportDocx = async () => {
+    if (isExporting) return;
+    const baseName = `${data.courseCode || 'Assignment'}_${data.studentName || 'Cover'}`;
+    const filename = `${baseName}_Cover_Page`;
+
+    await exportCoverToDocx({
+      data,
+      styleConfig,
+      filename,
+      onStart: () => {
+        setIsExporting(true);
+        setExportType('docx');
+        setExportError(null);
+        setExportStage('Preparing Word document structure...');
+      },
+      onProgress: (stage) => {
+        setExportStage(stage);
+      },
+      onComplete: () => {
+        setIsExporting(false);
+        setExportType(null);
+        setExportStage('');
+      },
+      onError: (err) => {
+        setIsExporting(false);
+        setExportType(null);
+        setExportStage('');
+        setExportError(err.message || 'Word (.docx) export failed. You can export as PDF or Print.');
       },
     });
   };
@@ -116,7 +153,12 @@ export default function App() {
   return (
     <div className="h-screen w-screen max-h-screen max-w-screen overflow-hidden flex flex-col bg-slate-100 text-slate-900 font-sans">
       {/* Top Application Bar */}
-      <Header onQuickDownload={handleExportPDF} isExporting={isExporting} />
+      <Header
+        onExportPDF={handleExportPDF}
+        onExportDocx={handleExportDocx}
+        isExporting={isExporting}
+        exportType={exportType}
+      />
 
       {/* Main 2-Part Workspace Container: Both Part 1 & Part 2 Visible Side by Side */}
       <main className="flex-1 min-h-0 flex flex-row overflow-hidden relative">
@@ -146,9 +188,11 @@ export default function App() {
             styleConfig={styleConfig}
             onOpenLayoutTab={() => setEditorTab('rearrange')}
             isExporting={isExporting}
+            exportType={exportType}
             exportStage={exportStage}
             exportError={exportError}
             onExportPDF={handleExportPDF}
+            onExportDocx={handleExportDocx}
             onDismissError={() => setExportError(null)}
           />
         </section>
